@@ -1,4 +1,4 @@
-name: Lint and Build on Tag
+name: Deploy on Tag
 
 on:
   push:
@@ -33,3 +33,23 @@ jobs:
 
       - name: Build Next.js app
         run: pnpm run build
+
+  deploy-prod:
+    name: Deploy Prod
+    needs: lint-and-build
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Override prod branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B prod
+          git push origin prod --force
