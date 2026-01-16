@@ -1,40 +1,42 @@
-name: Deploy Prod
+name: Deploy to Amplify
 
 on:
   workflow_dispatch:
-    inputs:
-      logLevel:
-        description: "Log level"
-        required: true
-        default: "warning"
-        type: choice
-        options:
-          - info
-          - warning
-          - debug
-      tag:
-        description: "Tag to deploy (e.g., v1.0.0)"
-        required: true
-        type: string
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  deploy-prod:
-    name: Deploy Prod
+  deploy:
+    name: Deploy to Amplify
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout tag
+      - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.tag }}
-          fetch-depth: 0
 
-      - name: Override prod branch
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Configure AWS Amplify
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -B prod
-          git push origin prod --force
+          npm install -g @aws-amplify/cli
+          amplify pull --appId d2ic2gr4yjck2u --envName prod --yes
+
+      - name: Publish to Amplify
+        run: amplify publish --yes
