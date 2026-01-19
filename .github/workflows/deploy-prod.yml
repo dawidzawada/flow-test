@@ -2,20 +2,6 @@ name: Deploy Prod
 
 on:
   workflow_dispatch:
-    inputs:
-      logLevel:
-        description: "Log level"
-        required: true
-        default: "warning"
-        type: choice
-        options:
-          - info
-          - warning
-          - debug
-      tag:
-        description: "Tag to deploy (e.g., v1.0.0)"
-        required: true
-        type: string
 
 permissions:
   contents: write
@@ -26,10 +12,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout tag
+      - name: Checkout selected ref
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag }}
           fetch-depth: 0
 
       - name: Override prod branch
